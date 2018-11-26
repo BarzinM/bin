@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# default timeout
+timeout_mins=60
+# while testing your script, making changes, you want this to be something like 1 or 2
+sec_per_min=60
+
+# check for command line input
+if [ 0 -ne $# ]
+then
+    # assign the first command line param, no check, if it is a number, though!
+    timeout_mins=$1
+fi
+
+echo ""
+# now it does make sense, to have a variable in the for loop core
+for i in $(seq $timeout_mins -1 1)
+do
+    echo -e "\e[1A\e[0K\r$i min left"
+    sleep $sec_per_min
+done
+
+msg="$timeout_mins min countdown finished!"
+
+echo -e "\e[1A\e[0K\r$msg"
+
+notify-send --urgency="critical" -i stock_appointment-reminder Timer "$msg"
+
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga &
+sleep .2
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga
