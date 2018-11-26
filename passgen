@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 string_length=20
 

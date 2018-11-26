@@ -1,3 +1,52 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-git status -svb
+red(){
+	if [ $1 -eq 0 ]; then
+		echo -n $1
+	else
+		echo -en "\033[0;31m$1\033[0m"
+	fi
+}
+
+green(){
+	if [ $1 -eq 0 ]; then
+		echo -n $1
+	else
+		echo -en "\033[0;32m$1\033[0m"
+	fi
+}
+
+git_status_all(){
+	git branch -a
+	# git branch -r
+
+	# echo ""
+	# printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+
+
+	git for-each-ref --format="%(refname:short) %(upstream:short)" refs/heads | \
+	while read local remote
+	do
+	    # [ -z "$remote" ] && continue
+	    git rev-list --left-right ${local}...${remote} -- 2>/dev/null >/tmp/git_upstream_status_delta || continue
+	    [ -z "$remote" ] && remote="NO REMOTE"
+	    LEFT_AHEAD=$(grep -c '^<' /tmp/git_upstream_status_delta)
+	    RIGHT_AHEAD=$(grep -c '^>' /tmp/git_upstream_status_delta)
+	    echo "$local (ahead $(green $LEFT_AHEAD)) | (behind $(red $RIGHT_AHEAD)) $remote"
+	done
+}
+
+while :; do
+    case $1 in
+        -a|--all) flag_all=true
+        ;;
+        *) break
+    esac
+    shift
+done
+
+if [ "$flag_all" = true ] ; then
+    git_status_all
+else
+	git status -svb
+fi
