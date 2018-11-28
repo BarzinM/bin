@@ -29,10 +29,10 @@ git_status_all(){
 	do
 	    # [ -z "$remote" ] && continue
 	    git rev-list --left-right ${local}...${remote} -- 2>/dev/null >/tmp/git_upstream_status_delta || continue
-	    [ -z "$remote" ] && remote="NO REMOTE"
+	    [ -z "$remote" ] && remote="\033[0;31mNO REMOTE\033[0m"
 	    LEFT_AHEAD=$(grep -c '^<' /tmp/git_upstream_status_delta)
 	    RIGHT_AHEAD=$(grep -c '^>' /tmp/git_upstream_status_delta)
-	    echo "$local (ahead $(green $LEFT_AHEAD)) | (behind $(red $RIGHT_AHEAD)) $remote"
+	    echo -e "$local (ahead $(green $LEFT_AHEAD)) | (behind $(red $RIGHT_AHEAD)) $remote"
 	done
 }
 
@@ -44,6 +44,9 @@ while :; do
     esac
     shift
 done
+
+echo -n "Origin URL: "
+git config --get remote.origin.url
 
 if [ "$flag_all" = true ] ; then
     git_status_all
