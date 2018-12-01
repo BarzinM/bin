@@ -53,6 +53,9 @@ if [ "$flag_all" = true ] ; then
     git_status_all
     git status -s --ahead-behind
 else
+	if [ "$flag_remote" = true ] ; then
+		git fetch
+	fi
 	git status -svb
 fi
 
