@@ -17,13 +17,6 @@ green(){
 }
 
 git_status_all(){
-	git branch -a
-	# git branch -r
-
-	# echo ""
-	# printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
-
-
 	git for-each-ref --format="%(refname:short) %(upstream:short)" refs/heads | \
 	while read local remote
 	do
@@ -38,18 +31,28 @@ git_status_all(){
 
 while :; do
     case $1 in
-        -a|--all) flag_all=true
+        -a|--all) flag_all=true;
+        ;;
+        -r|--remote) flag_remote=true;
+        ;;
+        -ar|-ra) flag_remote=true; flag_all=true;
         ;;
         *) break
     esac
     shift
 done
 
-echo -n "Origin URL: "
-git config --get remote.origin.url
 
 if [ "$flag_all" = true ] ; then
+	git branch -a
+	if [ "$flag_remote" = true ] ; then
+		echo -n "Origin URL: "
+		git config --get remote.origin.url
+		git fetch --dry-run --all -qq
+	fi
     git_status_all
+    git status -s --ahead-behind
 else
 	git status -svb
 fi
+
