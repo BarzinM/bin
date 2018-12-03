@@ -1,11 +1,64 @@
 #!/usr/bin/env bash
 
 string_length=20
+string_type='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~'
 
-if [ 0 -ne $# ]
-then
-    # assign the first command line param, no check, if it is a number, though!
-    string_length=$1
+while :; do
+    case $1 in
+        -h|-\?|--help) # help argument
+            usage
+            exit
+            ;;
+
+        --*[a-z]) # long arguments starting with "--"
+            long_option="${1#*--}"
+            if [[ $long_option == *"alpha"* ]]; then # long argument "--append-path"
+                CLIPBOARD=true
+            fi
+            if [[ $long_option == *"clipboard"* ]]; then # long argument "--path" that is supposed to be followed by another string
+                ALPHANUMERIC=true
+            fi
+            if [[ $long_option == *"verbose"* ]]; then # long argument "--verbose"
+                VERBOSE=true
+            fi            
+            ;;
+
+        -*[a-z]) # short arguments starting with one "-"
+            options="${1#*-}"
+            if [[ $options == *"c"* ]]; then # short argument "-a" 
+                CLIPBOARD=true
+            fi
+            if [[ $options == *"a"* ]]; then # short argument "-p" that is supposed to be followed by another string
+                ALPHANUMERIC=true
+            fi
+            if [[ $options == *"v"* ]]; then # short argument "-v"
+                VERBOSE=true
+            fi
+            ;;
+
+        -?*) # an argument starting with "-" that was not matched
+            printf 'ERROR: Unknown option: %s\n' "$1" >&2
+            ;;
+
+        *)
+            if [ "$1" ]; then
+                string_length=$1 # there is an unparsed argument, possibly a positional
+            else
+                break # there are no more arguments to parse
+            fi
+            ;;
+    esac
+    shift
+done
+
+if [ "$ALPHANUMERIC" = true ]; then
+	string_type='A-Za-z0-9'
 fi
 
-</dev/urandom tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' | head -c $string_length ; echo
+random_string=$(</dev/urandom tr -dc $string_type | head -c $string_length)
+
+if [ "$CLIPBOARD" = true ]; then
+	echo -n $random_string | xclip -selection c
+else
+	echo $random_string
+fi
