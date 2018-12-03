@@ -48,7 +48,7 @@ if [ "$flag_all" = true ] ; then
 	if [ "$flag_remote" = true ] ; then
 		echo -n "Origin URL: "
 		git config --get remote.origin.url
-		git fetch --dry-run --all -qq
+		git fetch --all -q
 	fi
     git_status_all
     git status -s --ahead-behind
