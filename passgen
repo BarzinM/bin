@@ -1,61 +1,81 @@
 #!/usr/bin/env bash
 
-string_length=20
-string_type='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~'
+STRING_LENGTH=20
+MINIMAL_SYMBOL_CHARACTERS='A-Za-z0-9!#$(),-./:?@|'
+CHARACTERS='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~'
+
+unknow_arg(){
+	printf 'ERROR: Unknown option: %s\n' "$1" >&2
+	exit
+}
 
 while :; do
     case $1 in
-        -h|-\?|--help) # help argument
+        -h|-\?|--help)
             usage
             exit
             ;;
 
-        --*[a-z]) # long arguments starting with "--"
+        --*[a-z]) #
             long_option="${1#*--}"
-            if [[ $long_option == *"alpha"* ]]; then # long argument "--append-path"
-                CLIPBOARD=true
-            fi
-            if [[ $long_option == *"clipboard"* ]]; then # long argument "--path" that is supposed to be followed by another string
+            if [[ $long_option == "alpha" ]]; then
                 ALPHANUMERIC=true
-            fi
-            if [[ $long_option == *"verbose"* ]]; then # long argument "--verbose"
+            elif [[ $long_option == "minimal" ]]; then
+                MINIMAL=true
+            elif [[ $long_option == "clipboard" ]]; then
+                CLIPBOARD=true
+            elif [[ $long_option == "verbose" ]]; then
                 VERBOSE=true
+            else
+            	unknow_arg $1
             fi            
             ;;
 
-        -*[a-z]) # short arguments starting with one "-"
+        -*[a-z])
             options="${1#*-}"
-            if [[ $options == *"c"* ]]; then # short argument "-a" 
-                CLIPBOARD=true
-            fi
-            if [[ $options == *"a"* ]]; then # short argument "-p" that is supposed to be followed by another string
-                ALPHANUMERIC=true
-            fi
-            if [[ $options == *"v"* ]]; then # short argument "-v"
-                VERBOSE=true
-            fi
+            for (( i=0; i<${#options}; i++ )); do
+              	char="${options:$i:1}"
+	            if [[ $char == "c" ]]; then
+	                CLIPBOARD=true
+	            elif [[ $char == "m" ]]; then
+	                MINIMAL=true
+	            elif [[ $char == "a" ]]; then
+	                ALPHANUMERIC=true
+	            elif [[ $char == "v" ]]; then
+	                VERBOSE=true
+	            else
+	            	unknow_arg -$char
+	            fi
+            done
             ;;
 
-        -?*) # an argument starting with "-" that was not matched
-            printf 'ERROR: Unknown option: %s\n' "$1" >&2
+        -?*)
+            	unknow_arg $1
             ;;
 
         *)
             if [ "$1" ]; then
-                string_length=$1 # there is an unparsed argument, possibly a positional
+                STRING_LENGTH=$1
             else
-                break # there are no more arguments to parse
+                break
             fi
             ;;
     esac
     shift
 done
 
-if [ "$ALPHANUMERIC" = true ]; then
-	string_type='A-Za-z0-9'
+re='^[0-9]+$'
+if ! [[ $STRING_LENGTH =~ $re ]] ; then
+   echo "error: Not a number" >&2; exit 1
 fi
 
-random_string=$(</dev/urandom tr -dc $string_type | head -c $string_length)
+if [ "$ALPHANUMERIC" = true ]; then
+	CHARACTERS='A-Za-z0-9'
+elif [ "$MINIMAL" = true ]; then
+	CHARACTERS=$MINIMAL_SYMBOL_CHARACTERS
+fi
+
+random_string=$(</dev/urandom tr -dc $CHARACTERS | head -c $STRING_LENGTH)
 
 if [ "$CLIPBOARD" = true ]; then
 	echo -n $random_string | xclip -selection c
