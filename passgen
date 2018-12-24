@@ -50,16 +50,16 @@ while :; do
             ;;
 
         -?*)
-            	unknow_arg $1
+        	unknow_arg $1
             ;;
 
         *)
-            if [ "$1" ]; then
-                STRING_LENGTH=$1
-            else
-                break
-            fi
-            ;;
+	        if [ "$1" ]; then
+	            STRING_LENGTH=$1
+	        else
+	            break
+	        fi
+	        ;;
     esac
     shift
 done
